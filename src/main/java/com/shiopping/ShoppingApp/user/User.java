@@ -1,5 +1,6 @@
 package com.shiopping.ShoppingApp.user;
 
+import com.shiopping.ShoppingApp.shoppinglist.ShoppingList;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +10,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -22,12 +24,19 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue
     private Integer id;
+
     private String firstname;
     private String lastname;
     private String email;
     private String password;
+
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    // Tells that User table is not owner of that relationship thus cannot save changes
+    @OneToMany(mappedBy = "user")
+    private List<ShoppingList> shoppingLists = new ArrayList<>();
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));
