@@ -1,4 +1,4 @@
-package com.shiopping.ShoppingApp.auth.sharedlist;
+package com.shiopping.ShoppingApp.sharedlist;
 
 import com.shiopping.ShoppingApp.shoppinglist.ShoppingList;
 import com.shiopping.ShoppingApp.user.User;
