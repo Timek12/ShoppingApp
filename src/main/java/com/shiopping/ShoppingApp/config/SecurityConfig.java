@@ -22,7 +22,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**").permitAll() // whitelist all endpoints from this list
+                        .requestMatchers("/api/v1/auth/**", "/api/v1/products/**").permitAll() // whitelist all endpoints from this list
                         .anyRequest().authenticated() // authorize all other request
                 )
                 .sessionManagement(sess -> sess
