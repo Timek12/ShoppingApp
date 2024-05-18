@@ -2,6 +2,7 @@ package com.shiopping.ShoppingApp.shoppinglist;
 
 import com.shiopping.ShoppingApp.product.Product;
 import com.shiopping.ShoppingApp.user.User;
+import com.shiopping.ShoppingApp.usershoppinglist.UserShoppingList;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,9 +23,8 @@ public class ShoppingList {
     @GeneratedValue
     private Integer id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @OneToMany(mappedBy = "shoppingList")
+    private List<UserShoppingList> userShoppingLists = new ArrayList<>();
 
     @ManyToMany // declare link table with 2 foreign keys (composite key)
     @JoinTable (
