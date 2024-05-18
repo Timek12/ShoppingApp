@@ -30,6 +30,7 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider)
                 // add before UsernamePasswordAuthenticationFilter, because we update SecurityContext
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .csrf(csrf -> csrf.disable())
                 .build();
     }
 }
