@@ -7,6 +7,7 @@ import com.shiopping.ShoppingApp.product.ProductRepository;
 import com.shiopping.ShoppingApp.product.QuantityType;
 import com.shiopping.ShoppingApp.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,6 +50,10 @@ public class ApplicationConfig {
         return new BCryptPasswordEncoder();
     }
 
+    @Bean
+    public ModelMapper modelMapper() {
+        return new ModelMapper();
+    }
     @Bean
     CommandLineRunner initDatabase(ProductRepository productRepository, CategoryRepository categoryRepository) {
         return args -> {

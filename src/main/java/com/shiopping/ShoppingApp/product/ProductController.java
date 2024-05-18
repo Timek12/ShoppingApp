@@ -14,22 +14,22 @@ public class ProductController {
     }
 
     @GetMapping("/")
-    public List<Product> getAllProducts() {
+    public List<ProductDTO> getAllProducts() {
         return productService.getAllProducts();
     }
 
     @GetMapping("/{id}")
-    public Product getProductById(@PathVariable Integer id) {
+    public ProductDTO getProductById(@PathVariable Integer id) {
         return productService.getProductById(id);
     }
 
     @PostMapping("/")
-    public Product createProduct(@RequestBody CreateProductDTO productDTO) {
+    public ProductDTO createProduct(@RequestBody CreateProductDTO productDTO) {
         return productService.createProduct(productDTO);
     }
 
     @PutMapping("/{id}")
-    public Product updateProduct(@PathVariable Integer id, @RequestBody UpdateProductDTO productDTO) {
+    public ProductDTO updateProduct(@PathVariable Integer id, @RequestBody UpdateProductDTO productDTO) {
         return productService.updateProduct(id, productDTO);
     }
 
