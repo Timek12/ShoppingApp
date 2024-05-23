@@ -30,7 +30,7 @@ public class SecurityConfig{
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**", "/api/v1/products/**").permitAll() // whitelist all endpoints from this list
+                        .requestMatchers("/api/v1/auth/**", "/api/v1/products/**", "/api/v1/shopping-lists/**").permitAll() // whitelist all endpoints from this list
                         .anyRequest().authenticated() // authorize all other request
                 )
                 .sessionManagement(sess -> sess
