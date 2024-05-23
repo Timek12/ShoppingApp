@@ -8,6 +8,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ProductService {
@@ -33,16 +34,21 @@ public class ProductService {
         return modelMapper.map(product, ProductDTO.class);
     }
 
-    @Transactional
+//    @Transactional
     public ProductDTO createProduct(CreateProductDTO productDTO) {
-        Category category = categoryRepository.findById(productDTO.getCategoryId())
-                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+        Optional<Category> categoryOptional = categoryRepository.findByCategoryName(productDTO.getCategoryName());
+        if(categoryOptional.isEmpty()) {
+            categoryRepository.save(new Category(productDTO.getCategoryName()));
+            categoryOptional = categoryRepository.findByCategoryName(productDTO.getCategoryName());
+        }
+
+        Category categoryFromDb = categoryOptional.get();
 
         QuantityType quantityType = QuantityType.valueOf(productDTO.getQuantityType());
 
         Product newProduct = Product.builder()
                 .productName(productDTO.getProductName())
-                .category(category)
+                .category(categoryFromDb)
                 .unitOfMeasure(productDTO.getUnitOfMeasure())
                 .quantityType(quantityType)
                 .build();
