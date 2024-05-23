@@ -2,6 +2,8 @@ package com.shiopping.ShoppingApp.category;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface CategoryRepository extends JpaRepository<Category, Integer> {
+import java.util.Optional;
 
+public interface CategoryRepository extends JpaRepository<Category, Integer> {
+    Optional<Category> findByCategoryName(String categoryName);
 }
