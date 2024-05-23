@@ -9,4 +9,6 @@ public class CreateShoppingListDTO {
     private String email;
     private String name;
     private String description;
+    private Integer productCount;
+    private Integer userCount;
 }

@@ -1,5 +1,7 @@
 package com.shiopping.ShoppingApp.shoppinglist;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.shiopping.ShoppingApp.product.Product;
 import com.shiopping.ShoppingApp.user.User;
 import com.shiopping.ShoppingApp.usershoppinglist.UserShoppingList;
@@ -25,9 +27,11 @@ public class ShoppingList {
 
     private String name;
     private String description;
-    private Integer size = 0;
+    private Integer productCount = 0;
+    private Integer userCount = 1;
 
     @OneToMany(mappedBy = "shoppingList")
+    @JsonBackReference
     private List<UserShoppingList> userShoppingLists = new ArrayList<>();
 
     @ManyToMany // declare link table with 2 foreign keys (composite key)
