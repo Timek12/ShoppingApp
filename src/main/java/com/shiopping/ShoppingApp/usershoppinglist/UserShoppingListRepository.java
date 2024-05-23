@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface UserShoppingListRepository extends JpaRepository<UserShoppingList, Integer> {
     List<UserShoppingList> findByUser(User user);
+    List<UserShoppingList> findByShoppingList(ShoppingList shoppingList);
 }

@@ -4,6 +4,7 @@ import com.shiopping.ShoppingApp.exception.ResourceNotFoundException;
 import com.shiopping.ShoppingApp.product.Product;
 import com.shiopping.ShoppingApp.product.ProductRepository;
 import com.shiopping.ShoppingApp.user.User;
+import com.shiopping.ShoppingApp.user.UserDTO;
 import com.shiopping.ShoppingApp.user.UserRepository;
 import com.shiopping.ShoppingApp.usershoppinglist.ListRole;
 import com.shiopping.ShoppingApp.usershoppinglist.UserShoppingList;
@@ -148,7 +149,7 @@ public class ShoppingListService {
         Optional<ShoppingList> shoppingListOptional = shoppingListRepository.findById(shoppingListId);
 
         if(shoppingListOptional.isEmpty()) {
-            throw new ResourceNotFoundException("Shopping list with given id doesnt not exists");
+            throw new ResourceNotFoundException("Shopping list with given id does not exists");
         }
 
         ShoppingList shoppingList = shoppingListOptional.get();
@@ -156,5 +157,30 @@ public class ShoppingListService {
         userShoppingListRepository.deleteAll(shoppingList.getUserShoppingLists());
 
         shoppingListRepository.deleteById(shoppingListId);
+    }
+
+    public List<UserDTO> getUsersFromShoppingList(Integer shoppingListId) {
+        Optional<ShoppingList> shoppingListOptional = shoppingListRepository.findById(shoppingListId);
+
+        if(shoppingListOptional.isEmpty()) {
+            throw new ResourceNotFoundException("Shopping list with given id does not exists");
+        }
+
+        ShoppingList shoppingList = shoppingListOptional.get();
+
+        List<UserShoppingList> userShoppingLists = userShoppingListRepository.findByShoppingList(shoppingList);
+
+        List<UserDTO> userList = new ArrayList<>();
+        for(UserShoppingList userShoppingList : userShoppingLists) {
+            Integer id = userShoppingList.getUser().getId();
+            String firstName = userShoppingList.getUser().getFirstName();
+            String lastName = userShoppingList.getUser().getLastName();
+            String email = userShoppingList.getUser().getEmail();
+            String role = userShoppingList.getRole().name();
+
+            userList.add(new UserDTO(id, firstName, lastName, email, role));
+        }
+
+        return userList;
     }
 }

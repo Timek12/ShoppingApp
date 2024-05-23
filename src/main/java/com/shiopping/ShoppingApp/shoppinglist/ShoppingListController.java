@@ -1,5 +1,6 @@
 package com.shiopping.ShoppingApp.shoppinglist;
 
+import com.shiopping.ShoppingApp.user.UserDTO;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +23,11 @@ public class ShoppingListController {
     @GetMapping("/{shoppingListId}")
     public ShoppingList getShoppingList(@PathVariable Integer shoppingListId) {
         return shoppingListService.getShoppingListById(shoppingListId);
+    }
+
+    @GetMapping("/{shoppingListId}/users")
+    public List<UserDTO> getUsersFromShoppingList(@PathVariable Integer shoppingListId) {
+        return shoppingListService.getUsersFromShoppingList(shoppingListId);
     }
 
     @PostMapping("/")
