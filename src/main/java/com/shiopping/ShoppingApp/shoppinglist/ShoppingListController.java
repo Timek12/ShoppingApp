@@ -6,6 +6,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("api/v1/shopping-lists")
+@CrossOrigin(origins = "http://localhost:8080")
 public class ShoppingListController {
     ShoppingListService shoppingListService;
 
@@ -13,13 +14,13 @@ public class ShoppingListController {
         this.shoppingListService = shoppingListService;
     }
 
-    @GetMapping("/{userId}")
-    public List<ShoppingList> getAllShoppingLists(@RequestParam Integer userId) {
-        return shoppingListService.getAllShoppingLists(userId);
+    @GetMapping("/users/{userEmail}")
+    public List<ShoppingList> getAllShoppingLists(@PathVariable String userEmail) {
+        return shoppingListService.getAllShoppingLists(userEmail);
     }
 
     @GetMapping("/{shoppingListId}")
-    public ShoppingList getShoppingList(@RequestParam Integer shoppingListId) {
+    public ShoppingList getShoppingList(@PathVariable Integer shoppingListId) {
         return shoppingListService.getShoppingListById(shoppingListId);
     }
 
@@ -28,13 +29,18 @@ public class ShoppingListController {
         return shoppingListService.createShoppingList(createShoppingListDTO);
     }
 
-    @PostMapping("/{shoppingListId}/users/{userId}")
-    public ShoppingList addUserToShoppingList(@RequestParam Integer shoppingListId, @RequestParam Integer userId) {
-        return shoppingListService.addUserToShoppingList(userId, shoppingListId);
+    @PostMapping("/{shoppingListId}/users/{userEmail}")
+    public ShoppingList addUserToShoppingList(@PathVariable String userEmail, @PathVariable Integer shoppingListId) {
+        return shoppingListService.addUserToShoppingList(userEmail, shoppingListId);
     }
 
     @PostMapping("/{shoppingListId}/products/{productId}")
-    public ShoppingList addProductToShoppingList(@RequestParam Integer shoppingListId, @RequestParam Integer productId) {
+    public ShoppingList addProductToShoppingList(@PathVariable Integer shoppingListId, @PathVariable Integer productId) {
         return shoppingListService.addProductToShoppingList(shoppingListId, productId);
+    }
+
+    @DeleteMapping("/{shoppingListId}")
+    public void deleteShoppingList(@PathVariable Integer shoppingListId) {
+        shoppingListService.RemoveShoppingList(shoppingListId);
     }
 }
