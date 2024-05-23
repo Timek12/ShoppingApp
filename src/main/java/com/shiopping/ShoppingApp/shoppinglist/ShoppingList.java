@@ -23,6 +23,10 @@ public class ShoppingList {
     @GeneratedValue
     private Integer id;
 
+    private String name;
+    private String description;
+    private Integer size = 0;
+
     @OneToMany(mappedBy = "shoppingList")
     private List<UserShoppingList> userShoppingLists = new ArrayList<>();
 
