@@ -7,6 +7,7 @@ import com.shiopping.ShoppingApp.user.User;
 import com.shiopping.ShoppingApp.user.UserRepository;
 import com.shiopping.ShoppingApp.usershoppinglist.ListRole;
 import com.shiopping.ShoppingApp.usershoppinglist.UserShoppingList;
+import com.shiopping.ShoppingApp.usershoppinglist.UserShoppingListKey;
 import com.shiopping.ShoppingApp.usershoppinglist.UserShoppingListRepository;
 import org.springframework.stereotype.Service;
 
@@ -32,14 +33,16 @@ public class ShoppingListService {
         this.productRepository = productRepository;
     }
 
-    public List<ShoppingList> getAllShoppingLists(Integer userId) {
-        Optional<User> userOptional = userRepository.findById(userId);
+    public List<ShoppingList> getAllShoppingLists(String userEmail) {
+        Optional<User> userOptional = userRepository.findByEmail(userEmail);
 
         if(userOptional.isEmpty()) {
-            throw new ResourceNotFoundException("User with given id does not exist");
+            throw new ResourceNotFoundException("User with given email does not exist");
         }
 
-        List<UserShoppingList> userShoppingLists = userShoppingListRepository.findAll();
+        User user = userOptional.get();
+
+        List<UserShoppingList> userShoppingLists = userShoppingListRepository.findByUser(user);
 
         List<ShoppingList> shoppingLists = new ArrayList<>();
 
@@ -67,10 +70,16 @@ public class ShoppingListService {
 
         User user = userOptional.get();
 
-        // returns created shopping list with id
+        // Save the ShoppingList entity before setting it to the UserShoppingList entity
         shoppingList = shoppingListRepository.save(shoppingList);
 
         UserShoppingList userShoppingList = new UserShoppingList();
+
+        UserShoppingListKey userShoppingListKey = new UserShoppingListKey();
+        userShoppingListKey.setUserId(user.getId());
+        userShoppingListKey.setShoppingListId(shoppingList.getId());
+
+        userShoppingList.setId(userShoppingListKey);
         userShoppingList.setUser(user);
         userShoppingList.setShoppingList(shoppingList);
         userShoppingList.setRole(ListRole.OWNER);
@@ -80,8 +89,8 @@ public class ShoppingListService {
         return shoppingList;
     }
 
-    public ShoppingList addUserToShoppingList(Integer userId, Integer shoppingListId) {
-        Optional<User> userOptional = userRepository.findById(userId);
+    public ShoppingList addUserToShoppingList(String userEmail, Integer shoppingListId) {
+        Optional<User> userOptional = userRepository.findByEmail(userEmail);
 
         if(userOptional.isEmpty()) {
             throw new ResourceNotFoundException("User with given id does not exist");
@@ -95,6 +104,10 @@ public class ShoppingListService {
 
         User user = userOptional.get();
         ShoppingList shoppingList = shoppingListOptional.get();
+
+        // add 1 to user count attribute
+        shoppingList.setUserCount(shoppingList.getUserCount() + 1);
+        shoppingList = shoppingListRepository.save(shoppingList);
 
         UserShoppingList userShoppingList = new UserShoppingList();
         userShoppingList.setUser(user);
@@ -124,11 +137,24 @@ public class ShoppingListService {
         Product product = productOptional.get();
 
         shoppingList.getProducts().add(product);
+        shoppingList.setProductCount(shoppingList.getProductCount() + 1);
 
         shoppingListRepository.save(shoppingList);
 
         return shoppingList;
     }
 
+    public void RemoveShoppingList(Integer shoppingListId) {
+        Optional<ShoppingList> shoppingListOptional = shoppingListRepository.findById(shoppingListId);
 
+        if(shoppingListOptional.isEmpty()) {
+            throw new ResourceNotFoundException("Shopping list with given id doesnt not exists");
+        }
+
+        ShoppingList shoppingList = shoppingListOptional.get();
+
+        userShoppingListRepository.deleteAll(shoppingList.getUserShoppingLists());
+
+        shoppingListRepository.deleteById(shoppingListId);
+    }
 }
