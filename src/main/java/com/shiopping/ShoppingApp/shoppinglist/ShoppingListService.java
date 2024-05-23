@@ -60,7 +60,7 @@ public class ShoppingListService {
         shoppingList.setName(createShoppingListDTO.getName());
         shoppingList.setDescription(createShoppingListDTO.getDescription());
 
-        Optional<User> userOptional = userRepository.findById(createShoppingListDTO.getUserId());
+        Optional<User> userOptional = userRepository.findByEmail(createShoppingListDTO.getEmail());
         if(userOptional.isEmpty()) {
             throw new ResourceNotFoundException("User with given id does not exist");
         }
