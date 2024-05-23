@@ -1,5 +1,7 @@
 package com.shiopping.ShoppingApp.usershoppinglist;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.shiopping.ShoppingApp.shoppinglist.ShoppingList;
 import com.shiopping.ShoppingApp.user.User;
 import jakarta.persistence.*;
@@ -16,11 +18,13 @@ public class UserShoppingList {
     @MapsId("userId")
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonManagedReference
     private User user;
 
     @MapsId("shoppingListId")
     @ManyToOne
     @JoinColumn(name = "shopping_list_id")
+    @JsonManagedReference
     private ShoppingList shoppingList;
 
     @Enumerated(EnumType.STRING)

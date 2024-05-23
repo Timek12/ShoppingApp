@@ -1,5 +1,6 @@
 package com.shiopping.ShoppingApp.user;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.shiopping.ShoppingApp.shoppinglist.ShoppingList;
 import com.shiopping.ShoppingApp.usershoppinglist.UserShoppingList;
 import jakarta.persistence.*;
@@ -36,6 +37,7 @@ public class User implements UserDetails {
 
     // Tells that User table is not owner of that relationship thus cannot save changes
     @OneToMany(mappedBy = "user")
+    @JsonBackReference
     private List<UserShoppingList> userShoppingLists = new ArrayList<>();
 
     @Override
