@@ -1,8 +1,13 @@
 package com.shiopping.ShoppingApp.shoppinglist;
 
+import com.shiopping.ShoppingApp.category.Category;
+import com.shiopping.ShoppingApp.category.CategoryDTO;
 import com.shiopping.ShoppingApp.exception.ResourceNotFoundException;
 import com.shiopping.ShoppingApp.product.Product;
 import com.shiopping.ShoppingApp.product.ProductRepository;
+import com.shiopping.ShoppingApp.shoppinglistproduct.ShoppingListProduct;
+import com.shiopping.ShoppingApp.shoppinglistproduct.ShoppingListProductKey;
+import com.shiopping.ShoppingApp.shoppinglistproduct.ShoppingListProductRepository;
 import com.shiopping.ShoppingApp.user.User;
 import com.shiopping.ShoppingApp.user.UserDTO;
 import com.shiopping.ShoppingApp.user.UserRepository;
@@ -22,16 +27,19 @@ public class ShoppingListService {
     private final UserRepository userRepository;
     private final UserShoppingListRepository userShoppingListRepository;
     private final ProductRepository productRepository;
+    private final ShoppingListProductRepository shoppingListProductRepository;
     public ShoppingListService(
             ShoppingListRepository shoppingListRepository,
             UserRepository userRepository,
             UserShoppingListRepository userShoppingListRepository,
-            ProductRepository productRepository
+            ProductRepository productRepository,
+            ShoppingListProductRepository shoppingListProductRepository
     ) {
         this.shoppingListRepository = shoppingListRepository;
         this.userRepository = userRepository;
         this.userShoppingListRepository = userShoppingListRepository;
         this.productRepository = productRepository;
+        this.shoppingListProductRepository = shoppingListProductRepository;
     }
 
     public List<ShoppingList> getAllShoppingLists(String userEmail) {
@@ -54,9 +62,52 @@ public class ShoppingListService {
         return shoppingLists;
     }
 
-    public ShoppingList getShoppingListById(Integer id) {
-        return shoppingListRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Shopping list with given id does not exist."));
+    public ShoppingListDTO getShoppingListById(Integer id) {
+        Optional<ShoppingList> shoppingListOptional = shoppingListRepository.findById(id);
+
+        if(shoppingListOptional.isEmpty()) {
+            throw new ResourceNotFoundException("Shopping list with given id does not exist.");
+        }
+
+        ShoppingList shoppingList = shoppingListOptional.get();
+
+        return mapToDTO(shoppingList);
+    }
+
+    public List<UserProductDTO> getProductsFromShoppingList(Integer shoppingListId) {
+        Optional<ShoppingList> shoppingListOptional = shoppingListRepository.findById(shoppingListId);
+
+        if(shoppingListOptional.isEmpty()) {
+            throw new ResourceNotFoundException("Shopping list with given id does not exist");
+        }
+
+        ShoppingList shoppingList = shoppingListOptional.get();
+
+        List<ShoppingListProduct> shoppingListProducts = shoppingListProductRepository.findByShoppingList(shoppingList);
+        List<UserProductDTO> userList = new ArrayList<>();
+
+        for(ShoppingListProduct shoppingListProduct : shoppingListProducts) {
+            UserProductDTO userProductDTO = getUserProductDTO(shoppingListProduct);
+
+            userList.add(userProductDTO);
+        }
+
+        return userList;
+    }
+
+    private static UserProductDTO getUserProductDTO(ShoppingListProduct shoppingListProduct) {
+        Category category = shoppingListProduct.getProduct().getCategory();
+        CategoryDTO categoryDTO = new CategoryDTO(category.getId(), category.getCategoryName());
+
+        UserProductDTO userProductDTO = new UserProductDTO();
+
+        userProductDTO.setId(shoppingListProduct.getProduct().getId());
+        userProductDTO.setProductName(shoppingListProduct.getProduct().getProductName());
+        userProductDTO.setCategory(categoryDTO);
+        userProductDTO.setUnitOfMeasure(shoppingListProduct.getProduct().getUnitOfMeasure());
+        userProductDTO.setQuantityType(String.valueOf(shoppingListProduct.getProduct().getQuantityType()));
+        userProductDTO.setQuantity(shoppingListProduct.getQuantity());
+        return userProductDTO;
     }
 
     public ShoppingList createShoppingList(CreateShoppingListDTO createShoppingListDTO) {
@@ -111,6 +162,11 @@ public class ShoppingListService {
         shoppingList = shoppingListRepository.save(shoppingList);
 
         UserShoppingList userShoppingList = new UserShoppingList();
+        UserShoppingListKey userShoppingListKey = new UserShoppingListKey();
+        userShoppingListKey.setUserId(user.getId());
+        userShoppingListKey.setShoppingListId(shoppingList.getId());
+
+        userShoppingList.setId(userShoppingListKey);
         userShoppingList.setUser(user);
         userShoppingList.setShoppingList(shoppingList);
         userShoppingList.setRole(ListRole.MEMBER);
@@ -137,11 +193,25 @@ public class ShoppingListService {
 
         Product product = productOptional.get();
 
-        shoppingList.getProducts().add(product);
-        shoppingList.setProductCount(shoppingList.getProductCount() + 1);
+        ShoppingListProductKey shoppingListProductKey = new ShoppingListProductKey();
+        shoppingListProductKey.setShoppingListId(shoppingList.getId());
+        shoppingListProductKey.setProductId(product.getId());
 
-        shoppingListRepository.save(shoppingList);
+        Optional<ShoppingListProduct> shoppingListProductOptional = shoppingListProductRepository.findById(shoppingListProductKey);
 
+        ShoppingListProduct shoppingListProduct;
+
+        if(shoppingListProductOptional.isPresent()) {
+            shoppingListProduct = shoppingListProductOptional.get();
+            shoppingListProduct.setQuantity(shoppingListProduct.getQuantity() + 1);
+        } else {
+            shoppingListProduct = new ShoppingListProduct();
+            shoppingListProduct.setId(shoppingListProductKey);
+            shoppingListProduct.setShoppingList(shoppingList);
+            shoppingListProduct.setProduct(product);
+            shoppingListProduct.setQuantity(1);
+        }
+        shoppingListProductRepository.save(shoppingListProduct);
         return shoppingList;
     }
 
@@ -182,5 +252,21 @@ public class ShoppingListService {
         }
 
         return userList;
+    }
+
+    private ShoppingListDTO mapToDTO(ShoppingList shoppingList) {
+        ShoppingListDTO shoppingListDTO = new ShoppingListDTO();
+
+        shoppingListDTO.setId(shoppingList.getId());
+        shoppingListDTO.setName(shoppingList.getName());
+        shoppingListDTO.setDescription(shoppingList.getDescription());
+        shoppingListDTO.setUserCount(shoppingList.getUserCount());
+        shoppingListDTO.setVersion(shoppingList.getVersion());
+        shoppingListDTO.setProductCount(shoppingList.getProductCount());
+
+        List<UserProductDTO> products = getProductsFromShoppingList(shoppingList.getId());
+        shoppingListDTO.setProducts(products);
+
+        return shoppingListDTO;
     }
 }

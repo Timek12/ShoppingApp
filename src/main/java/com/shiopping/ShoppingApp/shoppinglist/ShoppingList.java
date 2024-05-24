@@ -34,14 +34,6 @@ public class ShoppingList {
     @JsonBackReference
     private List<UserShoppingList> userShoppingLists = new ArrayList<>();
 
-    @ManyToMany // declare link table with 2 foreign keys (composite key)
-    @JoinTable (
-            name = "shopping_list_product",
-            joinColumns = @JoinColumn(name = "shopping_list_id"),
-            inverseJoinColumns = @JoinColumn(name = "product_id")
-    )
-    private List<Product> products = new ArrayList<>();
-
     @Version
     private Integer version;
 }

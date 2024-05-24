@@ -21,7 +21,7 @@ public class ShoppingListController {
     }
 
     @GetMapping("/{shoppingListId}")
-    public ShoppingList getShoppingList(@PathVariable Integer shoppingListId) {
+    public ShoppingListDTO getShoppingList(@PathVariable Integer shoppingListId) {
         return shoppingListService.getShoppingListById(shoppingListId);
     }
 
@@ -36,7 +36,7 @@ public class ShoppingListController {
     }
 
     @PostMapping("/{shoppingListId}/users/{userEmail}")
-    public ShoppingList addUserToShoppingList(@PathVariable String userEmail, @PathVariable Integer shoppingListId) {
+    public ShoppingList addUserToShoppingList(@PathVariable Integer shoppingListId, @PathVariable String userEmail) {
         return shoppingListService.addUserToShoppingList(userEmail, shoppingListId);
     }
 
