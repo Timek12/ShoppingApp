@@ -1,37 +1,51 @@
 package com.shiopping.ShoppingApp.product;
 
 import com.shiopping.ShoppingApp.category.Category;
+import com.shiopping.ShoppingApp.category.CategoryDTO;
 import com.shiopping.ShoppingApp.category.CategoryRepository;
 import com.shiopping.ShoppingApp.exception.ResourceNotFoundException;
+import com.shiopping.ShoppingApp.shoppinglist.UserProductDTO;
+import com.shiopping.ShoppingApp.shoppinglistproduct.ShoppingListProduct;
+import com.shiopping.ShoppingApp.shoppinglistproduct.ShoppingListProductRepository;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
-    private final ModelMapper modelMapper;
+    private final ShoppingListProductRepository shoppingListProductRepository;
 
-    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository, ModelMapper modelMapper) {
+    public ProductService(
+            ProductRepository productRepository,
+            CategoryRepository categoryRepository,
+            ShoppingListProductRepository shoppingListProductRepository,
+            ModelMapper modelMapper)
+    {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
-        this.modelMapper = modelMapper;
+        this.shoppingListProductRepository = shoppingListProductRepository;
     }
 
     public List<ProductDTO> getAllProducts() {
-        List<Product> products = productRepository.findAll();
-        return products.stream().map(product -> modelMapper.map(product, ProductDTO.class))
-                .toList();
+        return productRepository.findAll().stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
 
     public ProductDTO getProductById(int id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
-        return modelMapper.map(product, ProductDTO.class);
+        Optional<Product> product = productRepository.findById(id);
+
+        if(product.isEmpty()) {
+            throw new ResourceNotFoundException("Product not found");
+        }
+
+        return mapToDTO(product.get());
     }
 
 //    @Transactional
@@ -53,34 +67,57 @@ public class ProductService {
                 .quantityType(quantityType)
                 .build();
 
-        productRepository.save(newProduct);
+        newProduct = productRepository.save(newProduct);
 
-        return modelMapper.map(newProduct, ProductDTO.class);
+        return mapToDTO(newProduct);
     }
 
     @Transactional
     public ProductDTO updateProduct(Integer id, UpdateProductDTO productDTO) {
+        Optional<Product> productOptional = productRepository.findById(id);
+
+        if(productOptional.isEmpty()) {
+            throw new ResourceNotFoundException("Product with given id does not exist");
+        }
+
         Category category = categoryRepository.findById(productDTO.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
 
-        Product updatedProduct =  productRepository.findById(id)
-                .map(product -> {
-                    product.setProductName(productDTO.getProductName());
-                    product.setQuantityType(QuantityType.valueOf(productDTO.getQuantityType()));
-                    product.setUnitOfMeasure(productDTO.getUnitOfMeasure());
-                    product.setCategory(category);
-                    return productRepository.save(product);
-                }).orElseThrow(() -> new ResourceNotFoundException("Product with given id does not exists"));
+        Product updatedProduct = productOptional.get();
+        updatedProduct.setProductName(productDTO.getProductName());
+        updatedProduct.setCategory(category);
+        updatedProduct.setUnitOfMeasure(productDTO.getUnitOfMeasure());
+        updatedProduct.setQuantityType(QuantityType.valueOf(productDTO.getQuantityType()));
 
-        return modelMapper.map(updatedProduct, ProductDTO.class);
+        updatedProduct = productRepository.save(updatedProduct);
+
+        return mapToDTO(updatedProduct);
     }
 
     @Transactional
     public void deleteProduct(Integer id) {
-        if(!productRepository.existsById(id)) {
+        Optional<Product> productOptional = productRepository.findById(id);
+
+        if(productOptional.isEmpty()) {
             throw new ResourceNotFoundException("Product with given id does not exists");
         }
 
+        Product product = productOptional.get();
+
+        List<ShoppingListProduct> shoppingListProducts = shoppingListProductRepository.findByProduct(product);
+        shoppingListProductRepository.deleteAll(shoppingListProducts);
+
         productRepository.deleteById(id);
+    }
+
+    private ProductDTO mapToDTO(Product product) {
+        ProductDTO productDTO = new ProductDTO();
+        productDTO.setId(product.getId());
+        productDTO.setProductName(product.getProductName());
+        productDTO.setCategory(new CategoryDTO(product.getCategory().getId(), product.getCategory().getCategoryName()));
+        productDTO.setUnitOfMeasure(product.getUnitOfMeasure());
+        productDTO.setQuantityType(product.getQuantityType());
+
+        return productDTO;
     }
 }
