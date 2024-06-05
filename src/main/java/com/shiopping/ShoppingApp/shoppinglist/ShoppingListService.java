@@ -42,7 +42,7 @@ public class ShoppingListService {
         this.shoppingListProductRepository = shoppingListProductRepository;
     }
 
-    public List<ShoppingList> getAllShoppingLists(String userEmail) {
+    public List<ShoppingListDTO> getAllShoppingLists(String userEmail) {
         Optional<User> userOptional = userRepository.findByEmail(userEmail);
 
         if(userOptional.isEmpty()) {
@@ -53,10 +53,10 @@ public class ShoppingListService {
 
         List<UserShoppingList> userShoppingLists = userShoppingListRepository.findByUser(user);
 
-        List<ShoppingList> shoppingLists = new ArrayList<>();
+        List<ShoppingListDTO> shoppingLists = new ArrayList<>();
 
         for(UserShoppingList userShoppingList : userShoppingLists) {
-            shoppingLists.add(userShoppingList.getShoppingList());
+            shoppingLists.add(mapToDTO(userShoppingList.getShoppingList()));
         }
 
         return shoppingLists;
@@ -110,7 +110,7 @@ public class ShoppingListService {
         return userProductDTO;
     }
 
-    public ShoppingList createShoppingList(CreateShoppingListDTO createShoppingListDTO) {
+    public ShoppingListDTO createShoppingList(CreateShoppingListDTO createShoppingListDTO) {
         ShoppingList shoppingList = new ShoppingList();
         shoppingList.setName(createShoppingListDTO.getName());
         shoppingList.setDescription(createShoppingListDTO.getDescription());
@@ -138,10 +138,10 @@ public class ShoppingListService {
 
         userShoppingListRepository.save(userShoppingList);
 
-        return shoppingList;
+        return mapToDTO(shoppingList);
     }
 
-    public ShoppingList addUserToShoppingList(String userEmail, Integer shoppingListId) {
+    public ShoppingListDTO addUserToShoppingList(String userEmail, Integer shoppingListId) {
         Optional<User> userOptional = userRepository.findByEmail(userEmail);
 
         if(userOptional.isEmpty()) {
@@ -173,10 +173,10 @@ public class ShoppingListService {
 
         userShoppingListRepository.save(userShoppingList);
 
-        return shoppingList;
+        return mapToDTO(shoppingList);
     }
 
-    public ShoppingList addProductToShoppingList(Integer shoppingListId, String productName) {
+    public ShoppingListDTO addProductToShoppingList(Integer shoppingListId, Integer productId) {
         Optional<ShoppingList> shoppingListOptional = shoppingListRepository.findById(shoppingListId);
 
         if(shoppingListOptional.isEmpty()) {
@@ -185,7 +185,7 @@ public class ShoppingListService {
 
         ShoppingList shoppingList = shoppingListOptional.get();
 
-        Optional<Product> productOptional = productRepository.findByProductName(productName);
+        Optional<Product> productOptional = productRepository.findById(productId);
 
         if(productOptional.isEmpty()) {
             throw new ResourceNotFoundException("Product with given id does not exist");
@@ -211,22 +211,23 @@ public class ShoppingListService {
             shoppingListProduct.setProduct(product);
             shoppingListProduct.setQuantity(1);
         }
+
+        shoppingListProduct.getShoppingList().setProductCount(shoppingListProduct.getShoppingList().getProductCount() + 1);
         shoppingListProductRepository.save(shoppingListProduct);
-        return shoppingList;
+        return mapToDTO(shoppingList);
     }
 
-    public void RemoveShoppingList(Integer shoppingListId) {
-        Optional<ShoppingList> shoppingListOptional = shoppingListRepository.findById(shoppingListId);
+    public void deleteShoppingList(Integer id) {
+        ShoppingList shoppingList = shoppingListRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("ShoppingList not found with id " + id));
 
-        if(shoppingListOptional.isEmpty()) {
-            throw new ResourceNotFoundException("Shopping list with given id does not exists");
-        }
+        List<UserShoppingList> userShoppingLists = userShoppingListRepository.findByShoppingList(shoppingList);
+        userShoppingListRepository.deleteAll(userShoppingLists);
 
-        ShoppingList shoppingList = shoppingListOptional.get();
+        List<ShoppingListProduct> shoppingListProducts = shoppingListProductRepository.findByShoppingList(shoppingList);
+        shoppingListProductRepository.deleteAll(shoppingListProducts);
 
-        userShoppingListRepository.deleteAll(shoppingList.getUserShoppingLists());
-
-        shoppingListRepository.deleteById(shoppingListId);
+        shoppingListRepository.delete(shoppingList);
     }
 
     public List<UserDTO> getUsersFromShoppingList(Integer shoppingListId) {

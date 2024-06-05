@@ -1,6 +1,8 @@
 package com.shiopping.ShoppingApp.shoppinglist;
 
 import com.shiopping.ShoppingApp.user.UserDTO;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,37 +18,44 @@ public class ShoppingListController {
     }
 
     @GetMapping("/users/{userEmail}")
-    public List<ShoppingList> getAllShoppingLists(@PathVariable String userEmail) {
-        return shoppingListService.getAllShoppingLists(userEmail);
+    public ResponseEntity<?> getAllShoppingLists(@PathVariable String userEmail) {
+        List<ShoppingListDTO> shoppingLists = shoppingListService.getAllShoppingLists(userEmail);
+        return new ResponseEntity<>(shoppingLists, HttpStatus.OK);
     }
 
     @GetMapping("/{shoppingListId}")
-    public ShoppingListDTO getShoppingList(@PathVariable Integer shoppingListId) {
-        return shoppingListService.getShoppingListById(shoppingListId);
+    public ResponseEntity<?> getShoppingList(@PathVariable Integer shoppingListId) {
+        ShoppingListDTO shoppingList = shoppingListService.getShoppingListById(shoppingListId);
+        return new ResponseEntity<>(shoppingList, HttpStatus.OK);
     }
 
     @GetMapping("/{shoppingListId}/users")
-    public List<UserDTO> getUsersFromShoppingList(@PathVariable Integer shoppingListId) {
-        return shoppingListService.getUsersFromShoppingList(shoppingListId);
+    public ResponseEntity<?> getUsersFromShoppingList(@PathVariable Integer shoppingListId) {
+        List<UserDTO> users = shoppingListService.getUsersFromShoppingList(shoppingListId);
+        return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
     @PostMapping("/")
-    public ShoppingList createShoppingList(@RequestBody CreateShoppingListDTO createShoppingListDTO) {
-        return shoppingListService.createShoppingList(createShoppingListDTO);
+    public ResponseEntity<?> createShoppingList(@RequestBody CreateShoppingListDTO createShoppingListDTO) {
+        ShoppingListDTO shoppingList = shoppingListService.createShoppingList(createShoppingListDTO);
+        return new ResponseEntity<>(shoppingList, HttpStatus.CREATED);
     }
 
     @PostMapping("/{shoppingListId}/users/{userEmail}")
-    public ShoppingList addUserToShoppingList(@PathVariable Integer shoppingListId, @PathVariable String userEmail) {
-        return shoppingListService.addUserToShoppingList(userEmail, shoppingListId);
+    public ResponseEntity<?> addUserToShoppingList(@PathVariable Integer shoppingListId, @PathVariable String userEmail) {
+        ShoppingListDTO shoppingList = shoppingListService.addUserToShoppingList(userEmail, shoppingListId);
+        return new ResponseEntity<>(shoppingList, HttpStatus.OK);
     }
 
-    @PostMapping("/{shoppingListId}/products/{productName}")
-    public ShoppingList addProductToShoppingList(@PathVariable Integer shoppingListId, @PathVariable String productName) {
-        return shoppingListService.addProductToShoppingList(shoppingListId, productName);
+    @PostMapping("/{shoppingListId}/products/{productId}")
+    public ResponseEntity<?> addProductToShoppingList(@PathVariable Integer shoppingListId, @PathVariable Integer productId) {
+        ShoppingListDTO shoppingList = shoppingListService.addProductToShoppingList(shoppingListId, productId);
+        return new ResponseEntity<>(shoppingList, HttpStatus.OK);
     }
 
     @DeleteMapping("/{shoppingListId}")
-    public void deleteShoppingList(@PathVariable Integer shoppingListId) {
-        shoppingListService.RemoveShoppingList(shoppingListId);
+    public ResponseEntity<?> deleteShoppingList(@PathVariable Integer shoppingListId) {
+        shoppingListService.deleteShoppingList(shoppingListId);
+        return new ResponseEntity<>("Shopping list has been deleted successfully.", HttpStatus.OK);
     }
 }

@@ -1,5 +1,7 @@
 package com.shiopping.ShoppingApp.category;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,27 +16,41 @@ public class CategoryController {
     }
 
     @GetMapping("/")
-    public List<Category> getAllCategories() {
-        return categoryService.getAllCategories();
+    public ResponseEntity<List<Category>> getAllCategories() {
+        List<Category> categories = categoryService.getAllCategories();
+        return new ResponseEntity<>(categories, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public Category getCategoryById(@PathVariable Integer id) {
-        return categoryService.getCategoryById(id);
+    public ResponseEntity<?> getCategoryById(@PathVariable Integer id) {
+        Category category = categoryService.getCategoryById(id);
+        if (category == null) {
+            return new ResponseEntity<>("Category not found with id: " + id, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(category, HttpStatus.OK);
     }
 
     @PostMapping("/")
-    public Category createCategory(@RequestBody CreateCategoryDTO categoryDTO) {
-        return categoryService.createCategory(categoryDTO);
+    public ResponseEntity<Category> createCategory(@RequestBody CreateCategoryDTO categoryDTO) {
+        Category category = categoryService.createCategory(categoryDTO);
+        return new ResponseEntity<>(category, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public Category updateCategory(@PathVariable Integer id, @RequestBody CategoryDTO categoryDTO) {
-        return categoryService.updateCategory(id, categoryDTO);
+    public ResponseEntity<?> updateCategory(@PathVariable Integer id, @RequestBody CategoryDTO categoryDTO) {
+        Category category = categoryService.updateCategory(id, categoryDTO);
+        if (category == null) {
+            return new ResponseEntity<>("Unable to update. Category not found with id: " + id, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(category, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteCategory(@PathVariable Integer id) {
-        categoryService.deleteCategory(id);
+    public ResponseEntity<?> deleteCategory(@PathVariable Integer id) {
+        boolean isRemoved = categoryService.deleteCategory(id);
+        if (!isRemoved) {
+            return new ResponseEntity<>("Unable to delete. Category not found with id: " + id, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>("Category has been deleted successfully.", HttpStatus.OK);
     }
 }

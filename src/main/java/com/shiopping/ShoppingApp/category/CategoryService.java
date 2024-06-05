@@ -36,12 +36,13 @@ public class CategoryService {
                 }).orElseThrow(() -> new ResourceNotFoundException("Category with given id does not exist"));
     }
 
-    public void deleteCategory(Integer id) {
+    public boolean deleteCategory(Integer id) {
         if(!categoryRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Category with given id does not exist");
+            return false;
         }
 
         categoryRepository.deleteById(id);
+        return true;
     }
 
 }
