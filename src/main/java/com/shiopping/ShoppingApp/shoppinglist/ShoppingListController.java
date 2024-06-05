@@ -40,9 +40,9 @@ public class ShoppingListController {
         return shoppingListService.addUserToShoppingList(userEmail, shoppingListId);
     }
 
-    @PostMapping("/{shoppingListId}/products/{productId}")
-    public ShoppingList addProductToShoppingList(@PathVariable Integer shoppingListId, @PathVariable Integer productId) {
-        return shoppingListService.addProductToShoppingList(shoppingListId, productId);
+    @PostMapping("/{shoppingListId}/products/{productName}")
+    public ShoppingList addProductToShoppingList(@PathVariable Integer shoppingListId, @PathVariable String productName) {
+        return shoppingListService.addProductToShoppingList(shoppingListId, productName);
     }
 
     @DeleteMapping("/{shoppingListId}")

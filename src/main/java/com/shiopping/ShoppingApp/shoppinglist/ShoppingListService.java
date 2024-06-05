@@ -176,7 +176,7 @@ public class ShoppingListService {
         return shoppingList;
     }
 
-    public ShoppingList addProductToShoppingList(Integer shoppingListId, Integer productId) {
+    public ShoppingList addProductToShoppingList(Integer shoppingListId, String productName) {
         Optional<ShoppingList> shoppingListOptional = shoppingListRepository.findById(shoppingListId);
 
         if(shoppingListOptional.isEmpty()) {
@@ -185,7 +185,7 @@ public class ShoppingListService {
 
         ShoppingList shoppingList = shoppingListOptional.get();
 
-        Optional<Product> productOptional = productRepository.findById(productId);
+        Optional<Product> productOptional = productRepository.findByProductName(productName);
 
         if(productOptional.isEmpty()) {
             throw new ResourceNotFoundException("Product with given id does not exist");
