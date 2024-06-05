@@ -58,4 +58,16 @@ public class ShoppingListController {
         shoppingListService.deleteShoppingList(shoppingListId);
         return new ResponseEntity<>("Shopping list has been deleted successfully.", HttpStatus.OK);
     }
+
+    @DeleteMapping("/{shoppingListId}/products/{productId}")
+    public ResponseEntity<?> deleteProductFromShoppingList(@PathVariable Integer shoppingListId, @PathVariable Integer productId) {
+        shoppingListService.deleteProductFromShoppingList(shoppingListId, productId);
+        return new ResponseEntity<>("Product has been removed from the shopping list successfully.", HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{shoppingListId}/users/{userId}")
+    public ResponseEntity<?> deleteUserFromShoppingList(@PathVariable Integer shoppingListId, @PathVariable Integer userId) {
+        shoppingListService.deleteUserFromShoppingList(shoppingListId, userId);
+        return new ResponseEntity<>("User has been removed from the shopping list successfully.", HttpStatus.OK);
+    }
 }
