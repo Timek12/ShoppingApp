@@ -15,6 +15,7 @@ import com.shiopping.ShoppingApp.usershoppinglist.ListRole;
 import com.shiopping.ShoppingApp.usershoppinglist.UserShoppingList;
 import com.shiopping.ShoppingApp.usershoppinglist.UserShoppingListKey;
 import com.shiopping.ShoppingApp.usershoppinglist.UserShoppingListRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -59,6 +60,7 @@ public class ShoppingListService {
         for (UserShoppingList userShoppingList : userShoppingLists) {
             ShoppingList shoppingList = userShoppingList.getShoppingList();
             List<ShoppingListProduct> shoppingListProducts = shoppingListProductRepository.findByShoppingList(shoppingList);
+            // maps stream to Quantity and sums it
             int productCount = shoppingListProducts.stream().mapToInt(ShoppingListProduct::getQuantity).sum();
             shoppingList.setProductCount(productCount);
             shoppingLists.add(mapToDTO(shoppingList));
@@ -77,6 +79,7 @@ public class ShoppingListService {
         ShoppingList shoppingList = shoppingListOptional.get();
 
         List<ShoppingListProduct> shoppingListProducts = shoppingListProductRepository.findByShoppingList(shoppingList);
+        // maps stream to Quantity and sums it
         int productCount = shoppingListProducts.stream().mapToInt(ShoppingListProduct::getQuantity).sum();
         shoppingList.setProductCount(productCount);
 
@@ -93,6 +96,7 @@ public class ShoppingListService {
         ShoppingList shoppingList = shoppingListOptional.get();
 
         List<ShoppingListProduct> shoppingListProducts = shoppingListProductRepository.findByShoppingList(shoppingList);
+        // maps stream to Quantity and sums it
         int productCount = shoppingListProducts.stream().mapToInt(ShoppingListProduct::getQuantity).sum();
         shoppingList.setProductCount(productCount);
 
@@ -122,6 +126,7 @@ public class ShoppingListService {
         return userProductDTO;
     }
 
+    @Transactional
     public ShoppingListDTO createShoppingList(CreateShoppingListDTO createShoppingListDTO) {
         ShoppingList shoppingList = new ShoppingList();
         shoppingList.setName(createShoppingListDTO.getName());
@@ -129,7 +134,7 @@ public class ShoppingListService {
 
         Optional<User> userOptional = userRepository.findByEmail(createShoppingListDTO.getEmail());
         if (userOptional.isEmpty()) {
-            throw new ResourceNotFoundException("User with given id does not exist");
+            throw new ResourceNotFoundException("User with given email does not exist");
         }
 
         User user = userOptional.get();
@@ -153,6 +158,7 @@ public class ShoppingListService {
         return mapToDTO(shoppingList);
     }
 
+    @Transactional
     public ShoppingListDTO addUserToShoppingList(String userEmail, Integer shoppingListId) {
         Optional<User> userOptional = userRepository.findByEmail(userEmail);
 
@@ -169,7 +175,13 @@ public class ShoppingListService {
         User user = userOptional.get();
         ShoppingList shoppingList = shoppingListOptional.get();
 
-        // add 1 to user count attribute
+        // Check if the user is already in the shopping list
+        Optional<UserShoppingList> existingUserShoppingListOptional = userShoppingListRepository.findByUserIdAndShoppingListId(user.getId(), shoppingList.getId());
+
+        if (existingUserShoppingListOptional.isPresent()) {
+            throw new IllegalArgumentException("User is already in the shopping list");
+        }
+
         shoppingList.setUserCount(shoppingList.getUserCount() + 1);
         shoppingList = shoppingListRepository.save(shoppingList);
 
@@ -188,6 +200,7 @@ public class ShoppingListService {
         return mapToDTO(shoppingList);
     }
 
+    @Transactional
     public ShoppingListDTO addProductToShoppingList(Integer shoppingListId, Integer productId) {
         Optional<ShoppingList> shoppingListOptional = shoppingListRepository.findById(shoppingListId);
 
@@ -229,6 +242,7 @@ public class ShoppingListService {
         return mapToDTO(shoppingList);
     }
 
+    @Transactional
     public void deleteShoppingList(Integer id) {
         ShoppingList shoppingList = shoppingListRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("ShoppingList not found with id " + id));
@@ -242,6 +256,7 @@ public class ShoppingListService {
         shoppingListRepository.delete(shoppingList);
     }
 
+    @Transactional
     public void deleteProductFromShoppingList(Integer shoppingListId, Integer productId) {
         ShoppingList shoppingList = shoppingListRepository.findById(shoppingListId)
                 .orElseThrow(() -> new ResourceNotFoundException("ShoppingList not found with id " + shoppingListId));
@@ -266,6 +281,7 @@ public class ShoppingListService {
         }
     }
 
+    @Transactional
     public void deleteUserFromShoppingList(Integer shoppingListId, Integer userId) {
         ShoppingList shoppingList = shoppingListRepository.findById(shoppingListId)
                 .orElseThrow(() -> new ResourceNotFoundException("ShoppingList not found with id " + shoppingListId));
@@ -305,7 +321,9 @@ public class ShoppingListService {
 
         List<UserDTO> userList = new ArrayList<>();
         for (UserShoppingList userShoppingList : userShoppingLists) {
-            userList.add(mapToUserDTO(userShoppingList.getUser()));
+            UserDTO userDTO = mapToUserDTO(userShoppingList.getUser());
+            userDTO.setRole(userShoppingList.getRole().name());
+            userList.add(userDTO);
         }
 
         return userList;

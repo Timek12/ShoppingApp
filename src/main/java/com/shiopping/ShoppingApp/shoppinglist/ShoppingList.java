@@ -1,9 +1,6 @@
 package com.shiopping.ShoppingApp.shoppinglist;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.shiopping.ShoppingApp.product.Product;
-import com.shiopping.ShoppingApp.user.User;
 import com.shiopping.ShoppingApp.usershoppinglist.UserShoppingList;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -31,6 +28,7 @@ public class ShoppingList {
     private Integer userCount = 1;
 
     @OneToMany(mappedBy = "shoppingList")
+    // skips serializing that to json
     @JsonBackReference
     private List<UserShoppingList> userShoppingLists = new ArrayList<>();
 
