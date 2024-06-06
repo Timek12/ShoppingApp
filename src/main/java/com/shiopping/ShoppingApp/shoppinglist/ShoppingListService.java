@@ -57,7 +57,11 @@ public class ShoppingListService {
         List<ShoppingListDTO> shoppingLists = new ArrayList<>();
 
         for (UserShoppingList userShoppingList : userShoppingLists) {
-            shoppingLists.add(mapToDTO(userShoppingList.getShoppingList()));
+            ShoppingList shoppingList = userShoppingList.getShoppingList();
+            List<ShoppingListProduct> shoppingListProducts = shoppingListProductRepository.findByShoppingList(shoppingList);
+            int productCount = shoppingListProducts.stream().mapToInt(ShoppingListProduct::getQuantity).sum();
+            shoppingList.setProductCount(productCount);
+            shoppingLists.add(mapToDTO(shoppingList));
         }
 
         return shoppingLists;
@@ -72,6 +76,10 @@ public class ShoppingListService {
 
         ShoppingList shoppingList = shoppingListOptional.get();
 
+        List<ShoppingListProduct> shoppingListProducts = shoppingListProductRepository.findByShoppingList(shoppingList);
+        int productCount = shoppingListProducts.stream().mapToInt(ShoppingListProduct::getQuantity).sum();
+        shoppingList.setProductCount(productCount);
+
         return mapToDTO(shoppingList);
     }
 
@@ -85,6 +93,9 @@ public class ShoppingListService {
         ShoppingList shoppingList = shoppingListOptional.get();
 
         List<ShoppingListProduct> shoppingListProducts = shoppingListProductRepository.findByShoppingList(shoppingList);
+        int productCount = shoppingListProducts.stream().mapToInt(ShoppingListProduct::getQuantity).sum();
+        shoppingList.setProductCount(productCount);
+
         List<UserProductDTO> userList = new ArrayList<>();
 
         for (ShoppingListProduct shoppingListProduct : shoppingListProducts) {
